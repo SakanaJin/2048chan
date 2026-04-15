@@ -1,0 +1,2 @@
+DBSTRING=postgresql+psycopg2://chanuser:password@localhost:5432/chan
+SECRET_KEY="Key"

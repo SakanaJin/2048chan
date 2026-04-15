@@ -1,0 +1,30 @@
+# render.yaml (at repo root)
+services:
+  - type: web
+    name: chan-data
+    runtime: python
+    rootDir: 2048chan
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn Chan_Data.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DBSTRING
+        fromDatabase:
+          name: chan-db
+          property: connectionString
+
+  - type: web
+    name: 2048chan
+    runtime: static
+    rootDir: Chan-Web
+    buildCommand: bun install && bun run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://chan-data.onrender.com/api
+      - key: VITE_WS_BASE_URL
+        value: wss://chan-data.onrender.com/ws
+
+databases:
+  - name: chan-db
+    plan: free
+    databaseName: myapp
