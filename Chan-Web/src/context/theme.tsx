@@ -19,10 +19,14 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
           token: {
             borderRadius: 1.5,
-            wireframe: false,
             colorPrimary: primaryColor,
             colorInfo: "#90bedf",
             colorBgBase: "#353535",
+            wireframe: true,
+            lineWidth: 2,
+            boxShadow: "none",
+            boxShadowSecondary: "none",
+            boxShadowTertiary: "none",
           },
         }}
       >

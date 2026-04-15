@@ -1,0 +1,30 @@
+/* Buttons */
+.ant-btn {
+  box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.15) !important;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease !important;
+}
+.ant-btn:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: none !important;
+}
+
+/* Inputs */
+.ant-input {
+  box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Password / affix wrapper — shadow on wrapper, not inner input */
+.ant-input-affix-wrapper {
+  box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.1) !important;
+}
+.ant-input-affix-wrapper .ant-input {
+  box-shadow: none !important;
+}
+
+/* Cards */
+.ant-card {
+  box-shadow: 5px 5px 0 rgba(255, 255, 255, 0.1) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
