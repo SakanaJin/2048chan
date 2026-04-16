@@ -3,6 +3,7 @@ import type { LoginDto } from "../constants/types";
 import api from "../config/axios";
 import { useState } from "react";
 import { UserCreateModal } from "../components/modals/user-create-modal";
+import { notificationEmitter } from "../context/notification-emitter";
 
 export const LoginPage = ({ fetchCurrentUser }: { fetchCurrentUser: any }) => {
   const [form] = Form.useForm();
@@ -23,6 +24,22 @@ export const LoginPage = ({ fetchCurrentUser }: { fetchCurrentUser: any }) => {
     }
 
     if (response.data?.data) {
+      await fetchCurrentUser();
+    }
+  };
+
+  const continueAsGuest = async () => {
+    const response = await api.post<boolean>(`/auth/guest`);
+
+    if (response.data.has_errors) {
+      notificationEmitter.emit({
+        type: "error",
+        title: "Error",
+        content: response.data.errors[0].message,
+      });
+    }
+
+    if (response.data.data) {
       await fetchCurrentUser();
     }
   };
@@ -83,7 +100,7 @@ export const LoginPage = ({ fetchCurrentUser }: { fetchCurrentUser: any }) => {
         >
           Sign Up
         </Button>
-        <Button variant="outlined" block>
+        <Button variant="outlined" block onClick={() => continueAsGuest()}>
           Continue as Guest
         </Button>
       </Card>

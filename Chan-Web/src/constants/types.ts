@@ -23,6 +23,7 @@ export interface UserGetDto {
   id: number;
   username: string;
   role: UserRole;
+  pfp_path: string;
 }
 
 export interface LoginDto {
@@ -39,4 +40,5 @@ export interface UserCreateDto {
 export interface UserShallowDto {
   id: number;
   username: string;
+  pfp_path: string;
 }

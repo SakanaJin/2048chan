@@ -7,6 +7,7 @@ from datetime import datetime
 from Chan_Data.database import get_db
 from Chan_Data.Utils.Response import Response, HttpException
 from Chan_Data.Utils.Role import Role
+from Chan_Data.Utils.Pfp import get_pfp_path
 from Chan_Data.Controllers.AuthController import require_admin
 from Chan_Data.Entities.Users import User, UserCreateDto
 from Chan_Data.Entities.Auth import Auth, create_password_hash
@@ -24,7 +25,13 @@ def create_user(userdto: UserCreateDto, db: Session = Depends(get_db)):
         response.add_error("confirm_password", "password fields do not match")
     if response.has_errors:
         raise HttpException(status_code=400, response=response)
-    user = User(username=userdto.username, role=Role.USER, created_at=datetime.now())
+    pfp_path = get_pfp_path()
+    user = User(
+        username=userdto.username,
+        role=Role.USER,
+        created_at=datetime.now(),
+        pfp_path=pfp_path
+    )
     db.add(user)
     try:
         db.flush()

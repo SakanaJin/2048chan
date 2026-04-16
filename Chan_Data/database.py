@@ -21,7 +21,7 @@ def get_db():
 
 @contextmanager
 def db_session():
-    db = SessionLocal
+    db = SessionLocal()
     try:
         yield db
     finally:

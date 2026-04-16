@@ -11,6 +11,7 @@ from datetime import datetime
 from Chan_Data.database import get_db, SECRET_KEY
 from Chan_Data.Utils.Response import Response, HttpException
 from Chan_Data.Utils.Role import Role
+from Chan_Data.Utils.Pfp import get_pfp_path
 from Chan_Data.Entities.Auth import Auth, create_password_hash
 from Chan_Data.Entities.Users import User, LoginDto, UserCreateDto
 
@@ -112,7 +113,8 @@ def create_guest(fastres: FastRes, db: Session = Depends(get_db)):
             user = User(
                 username=f"Guest#{uuid4().hex[:5]}",
                 role=Role.GUEST,
-                created_at=datetime.now()
+                created_at=datetime.now(),
+                pfp_path=get_pfp_path()
             )
             db.add(user)
             db.commit()

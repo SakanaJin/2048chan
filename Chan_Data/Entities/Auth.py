@@ -10,6 +10,6 @@ def create_password_hash(password: str) -> str:
 class Auth(Base):
     __tablename__ = "auth"
     id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    password_hash = Column(String(256), unique=True, nullable=False)
+    password_hash = Column(String(256), nullable=False)
 
     user = relationship("User", back_populates="auth")
