@@ -10,6 +10,13 @@
   box-shadow: none !important;
 }
 
+.no-shadow.ant-btn {
+  box-shadow: none !important;
+}
+.no-shadow.ant-btn:active {
+  box-shadow: none !important;
+}
+
 /* Inputs */
 .ant-input {
   box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.1) !important;

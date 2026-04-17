@@ -1,13 +1,13 @@
 import { Navigate, Route, Routes as Switch } from "react-router-dom";
-import { NotFoundPage } from "../pages/not-found"
+import { NotFoundPage } from "../pages/not-found";
 import { routes } from "./RouteIndex";
-import { HomePage } from "../pages/home";
+import { DashboardPage } from "../pages/dashboard";
 
 export const Routes = () => {
   return (
     <Switch>
-      <Route path={routes.home} element={<HomePage />} />
-      <Route path={routes.root} element={<Navigate to={routes.home} />} />
+      <Route path={routes.dashboard} element={<DashboardPage />} />
+      <Route path={routes.root} element={<Navigate to={routes.dashboard} />} />
       <Route path="*" element={<NotFoundPage />} />
     </Switch>
   );
