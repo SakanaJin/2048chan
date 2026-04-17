@@ -2,6 +2,8 @@ import { Avatar, Button, Flex, Layout, theme, Typography } from "antd";
 import { useState, type ReactNode } from "react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { useAuth, useUser } from "../../authentication/use-auth";
+import { useNavigate } from "react-router-dom";
+import { routes } from "../../routes/RouteIndex";
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   const [collapsed, setCollapsed] = useState(true);
@@ -13,6 +15,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const user = useUser();
   const { Title } = Typography;
   const navbarbtnwidth = "5rem";
+  const navigate = useNavigate();
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -96,6 +99,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             style={{ marginLeft: "1rem", width: navbarbtnwidth }}
             color="primary"
             variant="filled"
+            onClick={() => navigate(routes.dashboard)}
           >
             Dashboard
           </Button>

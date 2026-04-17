@@ -11,7 +11,7 @@ export const NotFoundPage = () => {
       justify="center"
       align="center"
       orientation="vertical"
-      style={{ height: "100vh" }}
+      style={{ height: "100%" }}
     >
       <Title>Nothing here bozo!</Title>
       <FontAwesomeIcon
