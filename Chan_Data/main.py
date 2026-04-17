@@ -24,7 +24,9 @@ from Chan_Data.Entities.Messages import Message
 from Chan_Data.Controllers import (
     UserController,
     AuthController,
-    TopicController
+    TopicController,
+    ThreadController,
+    ThreadWSController
 )
 
 GUEST_GRACE = timedelta(days=1)
@@ -44,6 +46,8 @@ app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 app.include_router(UserController.router)
 app.include_router(AuthController.router)
 app.include_router(TopicController.router)
+app.include_router(ThreadWSController.router)
+app.include_router(ThreadController.router)
 
 app.add_middleware(
     CORSMiddleware,

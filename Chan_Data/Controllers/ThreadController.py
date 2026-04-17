@@ -6,13 +6,14 @@ from datetime import datetime, timedelta
 from Chan_Data.database import get_db
 from Chan_Data.Utils.Response import Response, HttpException
 from Chan_Data.Utils.Time import round_nearest_hour
+from Chan_Data.Utils.Role import Role
 from Chan_Data.Entities.Threads import Thread, ThreadCreateDto
 from Chan_Data.Entities.Topics import Topic
 from Chan_Data.Controllers.AuthController import get_current_user
 
 router = APIRouter(prefix="/api/threads", tags=["Threads"])
 
-THREAD_TIME = 14 #days
+THREAD_TIME = 7 #days
 MAX_THREADS = 20
 
 @router.get("")
@@ -63,6 +64,21 @@ def subscribe(id: int, db: Session = Depends(get_db), user = Depends(get_current
     response.data = True
     return response
 
+@router.post("/{id}/unsubscribe")
+def unsubscribe(id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    response = Response()
+    thread = db.get(Thread, id)
+    if not thread:
+        response.add_error("id", "thread not found")
+        raise HttpException(status_code=404, response=response)
+    if thread not in user.subbedthreads or thread.creatorid == user.id:
+        response.add_error("user", "user cannot unsubscribe from thread")
+        raise HttpException(status_code=400, response=response)
+    thread.subscribers.remove(user)
+    db.commit()
+    response.data = True
+    return response
+
 @router.post("/topic/{id}")
 def create(threaddto: ThreadCreateDto, id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
     response = Response()
@@ -89,4 +105,19 @@ def create(threaddto: ThreadCreateDto, id: int, db: Session = Depends(get_db), u
     thread.subscribers.append(user)
     db.commit()
     response.data = thread.toGetDto()
+    return response
+
+@router.delete("/{id}")
+def delete(id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    response = Response()
+    thread = db.get(Thread, id)
+    if not thread:
+        response.add_error("id", "thread not found")
+        raise HttpException(status_code=404, response=response)
+    if thread.creatorid != user.id and user.role != Role.ADMIN:
+        response.add_error("user", "forbidden")
+        raise HttpException(status_code=403, response=response)
+    db.delete(thread)
+    db.commit()
+    response.data = True
     return response

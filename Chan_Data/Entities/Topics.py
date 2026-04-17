@@ -7,7 +7,7 @@ from Chan_Data.database import Base
 class TopicGetDto(BaseModel):
     id: int
     name: str
-    views: str
+    views: int
 
 class TopicShallowDto(BaseModel):
     id: int

@@ -12,12 +12,14 @@ class ThreadGetDto(BaseModel):
     id: int
     name: str
     views: int
+    subscribers: int
     expiresat: datetime
 
 class ThreadShallowDto(BaseModel):
     id: int
     name: str
     views: int
+    subscribers: int
     expiresat: datetime
 
 class Thread(Base):
@@ -42,6 +44,7 @@ class Thread(Base):
             id=self.id,
             name=self.name,
             views=self.views,
+            subscribers=len(self.subscribers),
             expiresat=self.expiresat
         )
     
@@ -50,5 +53,6 @@ class Thread(Base):
             id=self.id,
             name=self.name,
             views=self.views,
+            subscribers=len(self.subscribers),
             expiresat=self.expiresat
         )

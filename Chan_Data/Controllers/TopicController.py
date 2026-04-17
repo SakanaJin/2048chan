@@ -24,5 +24,7 @@ def get_id(id: int, db: Session = Depends(get_db)):
     if not topic:
         response.add_error("id", "Topic not found")
         raise HttpException(status_code=404, response=response)
+    topic.views += 1
+    db.commit()
     response.data = topic.toGetDto()
     return response
