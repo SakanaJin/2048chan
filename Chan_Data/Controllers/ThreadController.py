@@ -7,9 +7,10 @@ from Chan_Data.database import get_db
 from Chan_Data.Utils.Response import Response, HttpException
 from Chan_Data.Utils.Time import round_nearest_hour
 from Chan_Data.Utils.Role import Role
-from Chan_Data.Entities.Threads import Thread, ThreadCreateDto
+from Chan_Data.Entities.Threads import Thread
 from Chan_Data.Entities.Topics import Topic
 from Chan_Data.Controllers.AuthController import get_current_user
+from Chan_Data.Entities.dtos import ThreadCreateDto
 
 router = APIRouter(prefix="/api/threads", tags=["Threads"])
 

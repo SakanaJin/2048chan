@@ -9,7 +9,8 @@ from Chan_Data.Utils.Response import Response, HttpException
 from Chan_Data.Utils.Role import Role
 from Chan_Data.Utils.Pfp import get_pfp_path
 from Chan_Data.Controllers.AuthController import require_admin
-from Chan_Data.Entities.Users import User, UserCreateDto
+from Chan_Data.Entities.Users import User
+from Chan_Data.Entities.dtos import UserCreateDto
 from Chan_Data.Entities.Auth import Auth, create_password_hash
 
 router = APIRouter(prefix="/api/users", tags=["Users"])

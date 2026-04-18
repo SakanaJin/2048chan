@@ -1,5 +1,5 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException, Depends
-from pydantic import ValidationError, BaseModel
+from pydantic import ValidationError
 from sqlalchemy import select, desc, func
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -7,24 +7,14 @@ from datetime import datetime
 from Chan_Data.Utils.WSManager import WSManager, WSMHandler, WSMTypes, WSMessage, WSCodes
 from Chan_Data.database import db_session
 from Chan_Data.Entities.Users import User
-from Chan_Data.Entities.Messages import MessageShallowDto, Message, MessageCreateDto
+from Chan_Data.Entities.Messages import Message
 from Chan_Data.Entities.Threads import Thread
 from Chan_Data.Controllers.AuthController import get_current_user
+from Chan_Data.Entities.dtos import PageDto, PaginationDto, MessageCreateDto
 
 router = APIRouter(prefix="/ws/threads", tags=["ThreadsWS"])
 
 PAGE_SIZE = 50 #messages
-
-class PaginationDto(BaseModel):
-    current_page: int
-    total_pages: int
-    total_messages: int
-    page_size: int
-    has_more: bool
-
-class PageDto(BaseModel):
-    messages: MessageShallowDto
-    pagination: PaginationDto
 
 def get_page(db: Session, threadid: int, page: int = 1) -> PageDto:
     offset = (page - 1) * PAGE_SIZE

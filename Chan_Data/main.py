@@ -6,11 +6,14 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from datetime import timedelta
-from sqlalchemy import select
+from sqlalchemy import select, delete, exists
+from datetime import datetime
 
 from Chan_Data.database import Base, engine, db_session
 
 from Chan_Data.Utils.Response import HttpException
+from Chan_Data.Utils.WSManager import WSManager
+from Chan_Data.Utils.Role import Role
 
 #table classes
 from Chan_Data.Entities.Users import User
@@ -65,7 +68,34 @@ def HttpExceptionHandler(request: Request, exception: HttpException):
     )
 
 #cron jobs
+@scheduler.scheduled_job(CronTrigger(minute=0)) #every hour
+async def expired_thread_cleanup():
+    with db_session() as db:
+        threads = db.scalars(
+            select(Thread)
+            .where(Thread.expiresat <= datetime.now())
+        ).all()
+        for thread in threads:
+            await WSManager.disconnect_thread(threadid=thread.id)
+            db.delete(thread)
+        db.commit()
 
+@scheduler.scheduled_job(CronTrigger(hour=00)) #every day 00:00
+async def expired_guest_cleanup():
+    currtime = datetime.now()
+    with db_session() as db:
+        db.execute(
+            delete(User)
+            .where(User.role == Role.GUEST)
+            .where(currtime - User.created_at >= GUEST_GRACE)
+            .where(
+                ~exists(
+                    select(Message.id)
+                    .where(Message.authorid == User.id)
+                )
+            )
+        )
+        db.commit()
 
 def seed_topics():
     with open("./Chan_Data/Topics.json") as f:

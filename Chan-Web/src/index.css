@@ -22,7 +22,7 @@
   box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Password / affix wrapper — shadow on wrapper, not inner input */
+/* Password / affix wrapper shadow on wrapper, not inner input */
 .ant-input-affix-wrapper {
   box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.1) !important;
 }

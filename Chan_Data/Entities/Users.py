@@ -1,33 +1,10 @@
 from sqlalchemy import Column, Integer, String, Enum, DateTime
 from sqlalchemy.orm import relationship
-from pydantic import BaseModel
 from datetime import datetime
 
 from Chan_Data.database import Base
 from Chan_Data.Utils.Role import Role
-from Chan_Data.Entities.Threads import ThreadShallowDto
-
-class LoginDto(BaseModel):
-    username: str
-    password: str
-
-class UserCreateDto(BaseModel):
-    username: str
-    password: str
-    confirm_password: str
-
-class UserGetDto(BaseModel):
-    id: int
-    username: str
-    role: Role
-    pfp_path: str
-    subbedthreads: list[ThreadShallowDto]
-    ownedthreads: list[ThreadShallowDto]
-    
-class UserShallowDto(BaseModel):
-    id: int
-    username: str
-    pfp_path: str
+from Chan_Data.Entities.dtos import UserGetDto, UserShallowDto
 
 class User(Base):
     __tablename__ = "users"

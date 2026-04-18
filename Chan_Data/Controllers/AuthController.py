@@ -1,8 +1,8 @@
 import bcrypt
 import itsdangerous
-from fastapi import APIRouter, Depends, HTTPException, Response as FastRes, Request, Cookie
+from fastapi import APIRouter, Depends, Response as FastRes, Cookie
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
+from sqlalchemy import select, func, exists, delete
 from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from uuid import uuid4
@@ -13,7 +13,9 @@ from Chan_Data.Utils.Response import Response, HttpException
 from Chan_Data.Utils.Role import Role
 from Chan_Data.Utils.Pfp import get_pfp_path
 from Chan_Data.Entities.Auth import Auth, create_password_hash
-from Chan_Data.Entities.Users import User, LoginDto, UserCreateDto
+from Chan_Data.Entities.Users import User
+from Chan_Data.Entities.Messages import Message
+from Chan_Data.Entities.dtos import UserCreateDto, LoginDto
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -72,9 +74,20 @@ def get_current_user_endpoint(user: User = Depends(get_current_user)):
     return response
 
 @router.post("/logout")
-def user_logout(fastres: FastRes):
+def user_logout(fastres: FastRes, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     response = Response()
     fastres.delete_cookie(COOKIE_NAME)
+    if user.role == Role.GUEST:
+        db.execute(
+            delete(User)
+            .where(User.id == user.id)
+            .where(
+                ~exists(
+                    select(Message.id)
+                    .where(Message.authorid == user.id)
+                )
+            )
+        )
     response.data = True
     return response
 

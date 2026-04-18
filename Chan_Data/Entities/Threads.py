@@ -1,26 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from pydantic import BaseModel
-from datetime import datetime
 
 from Chan_Data.database import Base
-
-class ThreadCreateDto(BaseModel):
-    name: str
-
-class ThreadGetDto(BaseModel):
-    id: int
-    name: str
-    views: int
-    subscribers: int
-    expiresat: datetime
-
-class ThreadShallowDto(BaseModel):
-    id: int
-    name: str
-    views: int
-    subscribers: int
-    expiresat: datetime
+from Chan_Data.Entities.dtos import ThreadShallowDto, ThreadGetDto
 
 class Thread(Base):
     __tablename__ = "threads"
@@ -45,7 +27,8 @@ class Thread(Base):
             name=self.name,
             views=self.views,
             subscribers=len(self.subscribers),
-            expiresat=self.expiresat
+            expiresat=self.expiresat,
+            creator=self.creator.toShallowDto()
         )
     
     def toShallowDto(self) -> ThreadShallowDto:

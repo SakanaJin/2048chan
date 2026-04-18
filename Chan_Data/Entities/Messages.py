@@ -1,28 +1,8 @@
 from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from pydantic import BaseModel
-from datetime import datetime
 
 from Chan_Data.database import Base
-from Chan_Data.Entities.Users import UserShallowDto
-from Chan_Data.Entities.Threads import ThreadShallowDto
-
-class MessageCreateDto(BaseModel):
-    content: str
-
-class MessageGetDto(BaseModel):
-    id: int
-    content: str
-    createdat: datetime
-    author: UserShallowDto
-    thread: ThreadShallowDto
-
-class MessageShallowDto(BaseModel):
-    id: int
-    content: str
-    createdat: datetime
-    author: UserShallowDto
-
+from Chan_Data.Entities.dtos import MessageGetDto, MessageShallowDto
 class Message(Base):
     __tablename__ = "messages"
     id = Column(Integer, primary_key=True)

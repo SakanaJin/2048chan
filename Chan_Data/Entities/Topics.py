@@ -1,17 +1,9 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from pydantic import BaseModel
 
 from Chan_Data.database import Base
+from Chan_Data.Entities.dtos import TopicGetDto, TopicShallowDto
 
-class TopicGetDto(BaseModel):
-    id: int
-    name: str
-    views: int
-
-class TopicShallowDto(BaseModel):
-    id: int
-    name: str
 
 class Topic(Base):
     __tablename__ = "topics"
@@ -26,11 +18,13 @@ class Topic(Base):
         return TopicGetDto(
             id=self.id,
             name=self.name,
-            views=self.views
+            views=self.views,
+            threads=[thread.toGetDto() for thread in self.threads]
         )
     
     def toShallowDto(self) -> TopicShallowDto:
         return TopicShallowDto(
             id=self.id,
-            name=self.id
+            name=self.id,
+            views=self.views
         )
