@@ -11,6 +11,28 @@ export interface ApiError {
   message: string;
 }
 
+// ws types-------------------------------------------------------------------------------
+
+export enum WSType {
+  READY = "ready",
+  MESSAGE = "message",
+  PAGE = "page",
+}
+
+export interface WSMessage {
+  Mtype: WSType;
+  data: any;
+}
+
+export enum WSCodes {
+  NORMAL_CLOSURE = 1000,
+  GOING_AWAY = 1001,
+  INTERNAL_SERVER_ERROR = 1011,
+  UNEXPECTED_ERROR = 1006,
+  POLICY_VIOLATION = 1008,
+  FORCE_DC = 4001,
+}
+
 // user types ----------------------------------------------------------------------------
 
 export enum UserRole {

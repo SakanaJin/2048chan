@@ -32,6 +32,8 @@ def get_by_id(id: int, db: Session = Depends(get_db)):
     if not thread:
         response.add_error("id", "thread not found")
         raise HttpException(status_code=404, response=response)
+    thread.views += 1
+    db.commit()
     response.data = thread.toGetDto()
     return response
 
