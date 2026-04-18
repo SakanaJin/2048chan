@@ -88,6 +88,7 @@ def user_logout(fastres: FastRes, db: Session = Depends(get_db), user: User = De
                 )
             )
         )
+        db.commit()
     response.data = True
     return response
 
