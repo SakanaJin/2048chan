@@ -107,6 +107,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             style={{ marginLeft: "1rem", width: navbarbtnwidth }}
             color="primary"
             variant="filled"
+            onClick={() => navigate(routes.topics)}
           >
             Topics
           </Button>

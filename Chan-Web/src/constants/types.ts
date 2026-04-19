@@ -92,7 +92,7 @@ export interface ThreadGetDto {
   id: number;
   name: string;
   views: number;
-  subscibers: number;
+  subscribers: number;
   expiresat: string;
   creator: UserShallowDto;
 }
@@ -101,7 +101,7 @@ export interface ThreadShallowDto {
   id: number;
   name: string;
   views: number;
-  subscibers: number;
+  subscribers: number;
   expiresat: string;
 }
 
