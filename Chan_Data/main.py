@@ -101,14 +101,11 @@ def seed_topics():
     with open("./Chan_Data/Topics.json") as f:
         seeds = json.load(f)
     with db_session() as db:
-        topics = db.scalars(
-            select(Topic)
-        ).all()
+        topics = db.scalars(select(Topic)).all()
+        existing_names = {t.name for t in topics}
         for seed in seeds:
-            if seed in topics:
+            if seed["name"] in existing_names:
                 continue
-            topic = Topic(
-                name=seed["name"]
-            )
+            topic = Topic(name=seed["name"])
             db.add(topic)
         db.commit()

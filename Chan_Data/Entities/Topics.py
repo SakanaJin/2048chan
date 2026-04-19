@@ -19,12 +19,12 @@ class Topic(Base):
             id=self.id,
             name=self.name,
             views=self.views,
-            threads=[thread.toGetDto() for thread in self.threads]
+            threads=[thread.toShallowDto() for thread in self.threads]
         )
     
     def toShallowDto(self) -> TopicShallowDto:
         return TopicShallowDto(
             id=self.id,
-            name=self.id,
+            name=self.name,
             views=self.views
         )

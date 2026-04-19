@@ -1,0 +1,216 @@
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  Empty,
+  Flex,
+  Input,
+  Row,
+  Skeleton,
+  Tag,
+  Tooltip,
+  Typography,
+} from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../config/axios";
+import { useAuth, useUser } from "../authentication/use-auth";
+import type { TopicGetDto, ThreadShallowDto } from "../constants/types";
+import { notificationEmitter } from "../context/notification-emitter";
+
+const { Title, Text } = Typography;
+
+export const TopicPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const user = useUser();
+  const { fetchCurrentUser } = useAuth();
+  const [topic, setTopic] = useState<TopicGetDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [newThreadName, setNewThreadName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [subscribing, setSubscribing] = useState<number | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get<TopicGetDto>(`/topics/${id}`).then((res) => {
+      if (!res?.data?.has_errors) setTopic(res.data.data);
+      setLoading(false);
+    });
+  }, [id]);
+
+  const isSubscribed = (threadId: number) =>
+    user?.subbedthreads?.some((t: ThreadShallowDto) => t.id === threadId) ??
+    false;
+
+  const isOwner = (threadId: number) =>
+    user?.ownedthreads?.some((t: ThreadShallowDto) => t.id === threadId) ??
+    false;
+
+  const handleSubscribe = async (threadId: number) => {
+    setSubscribing(threadId);
+    const res = await api.post(`/threads/${threadId}/subscribe`);
+    if (!res?.data?.has_errors) {
+      notificationEmitter.emit({
+        type: "success",
+        title: "Subscribed",
+        content: "You are now subscribed.",
+      });
+      fetchCurrentUser();
+    }
+    setSubscribing(null);
+  };
+
+  const handleUnsubscribe = async (threadId: number) => {
+    setSubscribing(threadId);
+    const res = await api.post(`/threads/${threadId}/unsubscribe`);
+    if (!res?.data?.has_errors) {
+      notificationEmitter.emit({
+        type: "success",
+        title: "Unsubscribed",
+        content: "You have unsubscribed.",
+      });
+      fetchCurrentUser();
+    }
+    setSubscribing(null);
+  };
+
+  const handleCreate = async () => {
+    const name = newThreadName.trim();
+    if (!name || !id) return;
+    setCreating(true);
+    const res = await api.post(`/threads/topic/${id}`, { name });
+    if (!res?.data?.has_errors) {
+      notificationEmitter.emit({
+        type: "success",
+        title: "Thread created",
+        content: `"${name}" created and subscribed.`,
+      });
+      fetchCurrentUser();
+      setNewThreadName("");
+      // re-fetch topic to show new thread in list
+      const updated = await api.get<TopicGetDto>(`/topics/${id}`);
+      if (!updated?.data?.has_errors) setTopic(updated.data.data);
+    }
+    setCreating(false);
+  };
+
+  if (loading)
+    return (
+      <div style={{ padding: "28px 32px", maxWidth: 1000, margin: "0 auto" }}>
+        <Skeleton active />
+      </div>
+    );
+
+  if (!topic) return null;
+
+  return (
+    <div style={{ padding: "28px 32px", maxWidth: 1000, margin: "0 auto" }}>
+      <Title level={2} style={{ marginBottom: 4 }}>
+        {topic.name}
+      </Title>
+      <Text type="secondary" style={{ display: "block", marginBottom: 24 }}>
+        {topic.threads.length} thread{topic.threads.length !== 1 ? "s" : ""} ·{" "}
+        {topic.views} views
+      </Text>
+
+      {topic.threads.length === 0 ? (
+        <Card style={{ borderRadius: 10, marginBottom: 24 }}>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="No threads yet — create one below."
+          />
+        </Card>
+      ) : (
+        <Row gutter={[12, 12]} style={{ marginBottom: 24 }}>
+          {topic.threads.map((thread) => {
+            const subbed = isSubscribed(thread.id);
+            const owned = isOwner(thread.id);
+            return (
+              <Col key={thread.id} xs={24} sm={12} md={8}>
+                <Card
+                  size="small"
+                  style={{
+                    borderRadius: 8,
+                    border: subbed ? "1px solid #185FA5" : undefined,
+                  }}
+                >
+                  <Flex vertical gap={8}>
+                    <Flex justify="space-between" align="center" gap={8}>
+                      <Text
+                        strong
+                        style={{
+                          fontSize: 13,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => navigate(`/thread/${thread.id}`)}
+                      >
+                        {thread.name}
+                      </Text>
+                      {subbed && (
+                        <Tag color="blue" style={{ fontSize: 11 }}>
+                          Subscribed
+                        </Tag>
+                      )}
+                    </Flex>
+                    <Text type="secondary" style={{ fontSize: 11 }}>
+                      {thread.subscribers} subscribers · {thread.views} views
+                    </Text>
+                    <Tooltip
+                      title={
+                        owned
+                          ? "Owners cannot unsubscribe from their own thread"
+                          : ""
+                      }
+                    >
+                      <Button
+                        size="small"
+                        type={subbed ? "default" : "primary"}
+                        danger={subbed}
+                        disabled={owned}
+                        loading={subscribing === thread.id}
+                        onClick={() =>
+                          subbed
+                            ? handleUnsubscribe(thread.id)
+                            : handleSubscribe(thread.id)
+                        }
+                      >
+                        {subbed ? "Unsubscribe" : "Subscribe"}
+                      </Button>
+                    </Tooltip>
+                  </Flex>
+                </Card>
+              </Col>
+            );
+          })}
+        </Row>
+      )}
+
+      <Divider />
+
+      <Flex gap={8}>
+        <Input
+          placeholder="New thread name..."
+          size="small"
+          value={newThreadName}
+          onChange={(e) => setNewThreadName(e.target.value)}
+          onPressEnter={handleCreate}
+          style={{ maxWidth: 280 }}
+        />
+        <Button
+          size="small"
+          type="primary"
+          icon={<PlusOutlined />}
+          loading={creating}
+          onClick={handleCreate}
+        >
+          Create thread
+        </Button>
+      </Flex>
+    </div>
+  );
+};
