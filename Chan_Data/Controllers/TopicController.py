@@ -9,10 +9,12 @@ from Chan_Data.Entities.Topics import Topic
 router = APIRouter(prefix="/api/topics", tags=["Topics"])
 
 @router.get("")
+@router.get("")
 def get_all(db: Session = Depends(get_db)):
     response = Response()
     topics = db.scalars(
         select(Topic)
+        .order_by(Topic.id)
     ).all()
     response.data = [topic.toGetDto() for topic in topics]
     return response
@@ -24,5 +26,7 @@ def get_id(id: int, db: Session = Depends(get_db)):
     if not topic:
         response.add_error("id", "Topic not found")
         raise HttpException(status_code=404, response=response)
+    topic.views += 1
+    db.commit()
     response.data = topic.toGetDto()
     return response

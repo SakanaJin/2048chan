@@ -9,6 +9,7 @@ from Chan_Data.database import db_session
 class WSMTypes(str, Enum):
     READY = "ready"
     MESSAGE = "message"
+    PAGE = "page"
 
 class WSCodes(IntEnum):
     NORMAL_CLOSURE = 1000
