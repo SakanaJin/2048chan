@@ -14,7 +14,7 @@ run:
 resetdb:
 	sudo -u postgres psql -c "DROP DATABASE IF EXISTS chan;"
 	sudo -u postgres psql -c "CREATE DATABASE chan;"
-	sudo -u postgres psql -d myapp -c "ALTER DATABASE chan OWNER TO chanuser;"
+	sudo -u postgres psql -d chan -c "ALTER DATABASE chan OWNER TO chanuser;"
 
 setup:
 	@echo "Creating Python virtual environment..."
