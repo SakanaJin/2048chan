@@ -11,6 +11,8 @@ services:
         fromDatabase:
           name: chan-db
           property: connectionString
+      - key: SECRET_KEY
+        sync: false
 
   - type: web
     name: 2048chan
