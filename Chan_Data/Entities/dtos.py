@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List
 
 from Chan_Data.Utils.Role import Role
 
@@ -78,5 +79,5 @@ class PaginationDto(BaseModel):
     has_more: bool
 
 class PageDto(BaseModel):
-    messages: MessageShallowDto
+    messages: List[MessageShallowDto]
     pagination: PaginationDto

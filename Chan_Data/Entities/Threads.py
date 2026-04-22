@@ -19,7 +19,7 @@ class Thread(Base):
 
     subscribers = relationship("User", back_populates="subbedthreads", secondary="subscribedthreads")
 
-    messages = relationship("Message", back_populates="thread")
+    messages = relationship("Message", back_populates="thread", cascade="all, delete-orphan")
 
     def toGetDto(self) -> ThreadGetDto:
         return ThreadGetDto(

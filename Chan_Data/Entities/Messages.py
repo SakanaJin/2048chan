@@ -12,7 +12,7 @@ class Message(Base):
     authorid = Column(Integer, ForeignKey("users.id"))
     author = relationship("User", back_populates="messages")
 
-    threadid = Column(Integer, ForeignKey("threads.id"))
+    threadid = Column(Integer, ForeignKey("threads.id", ondelete="CASCADE"))
     thread = relationship("Thread", back_populates="messages")
 
     def toGetDto(self) -> MessageGetDto:
