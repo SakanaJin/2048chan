@@ -29,6 +29,7 @@ export const ThreadsPage = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [pagination, setPagination] = useState<PaginationDto | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const initialScroll = useRef(false);
 
   useEffect(() => {
     api.get<ThreadShallowDto>(`/threads/${id}`).then((res) => {
@@ -87,6 +88,19 @@ export const ThreadsPage = () => {
       bottomRef.current?.scrollIntoView({ behavior: "instant" });
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (messages.length > 0 && !initialScroll.current) {
+      initialScroll.current = true;
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "instant" });
+      }, 50);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    initialScroll.current = false;
+  }, [id]);
 
   const sendMessage = async () => {
     if (!wsRef.current) return;
@@ -283,7 +297,6 @@ export const ThreadsPage = () => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
-                e.currentTarget.blur();
               }
             }}
           />
