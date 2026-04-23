@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Button,
   Card,
   Col,
@@ -14,15 +15,15 @@ import {
   ClockCircleOutlined,
   CompassOutlined,
   EyeOutlined,
-  MessageOutlined,
   TeamOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { routes } from "../routes/RouteIndex";
 import { useUser, useAuth } from "../authentication/use-auth";
 import api from "../config/axios";
-import type { ThreadShallowDto } from "../constants/types";
+import type { MessageShallowDto, ThreadShallowDto } from "../constants/types";
 import { notificationEmitter } from "../context/notification-emitter";
 
 const { Title, Text } = Typography;
@@ -35,95 +36,101 @@ function formatExpiry(isoString: string): string {
   return `Expires in ${Math.floor(hours / 24)}d`;
 }
 
+function formatRelativeTime(isoString: string): string {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 function isExpiringSoon(isoString: string): boolean {
   const diff = new Date(isoString).getTime() - Date.now();
   return diff > 0 && diff < 24 * 3_600_000;
 }
 
-const RecentMessagesPlaceholder = () => (
-  <Flex vertical gap={8}>
-    {[1, 2].map((i) => (
-      <Flex
-        key={i}
-        gap={10}
-        align="flex-start"
-        style={{
-          padding: "10px 12px",
-          background: "rgba(0,0,0,0.02)",
-          borderRadius: 8,
-          border: "1px dashed #d9d9d9",
-        }}
-      >
-        {/* Avatar placeholder */}
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            background: "#f0f0f0",
-            flexShrink: 0,
-          }}
-        />
-        <Flex vertical gap={4} style={{ flex: 1 }}>
-          {/* Username + timestamp line */}
-          <Flex gap={8} align="center">
-            <div
-              style={{
-                width: 70,
-                height: 10,
-                borderRadius: 4,
-                background: "#e8e8e8",
-              }}
-            />
-            <div
-              style={{
-                width: 40,
-                height: 10,
-                borderRadius: 4,
-                background: "#f0f0f0",
-              }}
-            />
-          </Flex>
-          {/* Message content lines */}
-          <div
-            style={{
-              width: "90%",
-              height: 10,
-              borderRadius: 4,
-              background: "#f0f0f0",
-            }}
-          />
-          <div
-            style={{
-              width: "60%",
-              height: 10,
-              borderRadius: 4,
-              background: "#f5f5f5",
-            }}
-          />
+const RecentMessages = ({ threadId }: { threadId: number }) => {
+  const [messages, setMessages] = useState<MessageShallowDto[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<
+        MessageShallowDto[]
+      >(`/threads/${threadId}/messages?page=1&page_size=2`)
+      .then((res) => {
+        if (!res?.data?.has_errors) setMessages(res.data.data);
+        setLoading(false);
+      });
+  }, [threadId]);
+
+  if (loading) return <div style={{ height: 130 }} />;
+
+  return (
+    <div style={{ height: 130, overflow: "hidden" }}>
+      {messages.length === 0 ? (
+        <Flex align="center" justify="center" style={{ height: 130 }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            No messages yet — be the first to post!
+          </Text>
         </Flex>
-      </Flex>
-    ))}
-    <Text
-      type="secondary"
-      style={{ fontSize: 11, textAlign: "center", marginTop: 2 }}
-    >
-      <MessageOutlined style={{ marginRight: 4 }} />
-      Recent messages coming soon
-    </Text>
-  </Flex>
-);
+      ) : (
+        <Flex vertical gap={8}>
+          {messages.map((msg) => (
+            <Flex
+              key={msg.id}
+              gap={10}
+              align="flex-start"
+              style={{
+                padding: "8px 10px",
+                background: "rgba(0,0,0,0.02)",
+                borderRadius: 8,
+              }}
+            >
+              <Avatar
+                size={28}
+                src={msg.author.pfp_path || undefined}
+                icon={!msg.author.pfp_path ? <UserOutlined /> : undefined}
+                style={{ flexShrink: 0 }}
+              />
+              <Flex vertical gap={2} style={{ flex: 1, minWidth: 0 }}>
+                <Flex gap={8} align="center">
+                  <Text strong style={{ fontSize: 12 }}>
+                    {msg.author.username}
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: 11 }}>
+                    {formatRelativeTime(msg.createdat.toString())}
+                  </Text>
+                </Flex>
+                <Text
+                  style={{ fontSize: 12, color: "#4a9e6b" }}
+                  ellipsis={{ tooltip: msg.content }}
+                >
+                  {msg.content}
+                </Text>
+              </Flex>
+            </Flex>
+          ))}
+        </Flex>
+      )}
+    </div>
+  );
+};
 
 const ThreadCard = ({
   thread,
   onUnsubscribe,
   unsubscribing,
   isOwner,
+  busy,
 }: {
   thread: ThreadShallowDto;
   onUnsubscribe: (id: number) => void;
   unsubscribing: boolean;
   isOwner: boolean;
+  busy: boolean;
 }) => {
   const navigate = useNavigate();
   const expiring = isExpiringSoon(thread.expiresat.toString());
@@ -179,8 +186,8 @@ const ThreadCard = ({
 
       <Divider style={{ margin: "0" }} />
 
-      {/* Recent messages placeholder */}
-      <RecentMessagesPlaceholder />
+      {/* Recent messages */}
+      <RecentMessages threadId={thread.id} />
 
       <Divider style={{ margin: "0" }} />
 
@@ -189,6 +196,7 @@ const ThreadCard = ({
         <Button
           size="small"
           type="primary"
+          disabled={busy}
           onClick={() => navigate(`/thread/${thread.id}`)}
         >
           Open
@@ -203,7 +211,7 @@ const ThreadCard = ({
           <Button
             size="small"
             danger
-            disabled={isOwner}
+            disabled={isOwner || busy}
             loading={unsubscribing}
             onClick={() => onUnsubscribe(thread.id)}
           >
@@ -225,13 +233,15 @@ export const DashboardPage = () => {
   const [unsubscribingIds, setUnsubscribingIds] = useState<Set<number>>(
     new Set(),
   );
+  const [busy, setBusy] = useState(false);
 
   const handleUnsubscribe = async (id: number) => {
+    setBusy(true);
     setUnsubscribingIds((prev) => new Set(prev).add(id));
     const res = await api.post(`/threads/${id}/unsubscribe`);
     if (!res?.data?.has_errors) {
       setThreads((prev) => prev.filter((t) => t.id !== id));
-      fetchCurrentUser();
+      await fetchCurrentUser();
       notificationEmitter.emit({
         type: "success",
         title: "Unsubscribed",
@@ -243,6 +253,7 @@ export const DashboardPage = () => {
       next.delete(id);
       return next;
     });
+    setBusy(false);
   };
 
   return (
@@ -301,6 +312,7 @@ export const DashboardPage = () => {
                   onUnsubscribe={handleUnsubscribe}
                   unsubscribing={unsubscribingIds.has(thread.id)}
                   isOwner={isOwner}
+                  busy={busy}
                 />
               </Col>
             );
