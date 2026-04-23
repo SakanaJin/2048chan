@@ -1,7 +1,9 @@
-import { Card, Empty, Flex, Typography, Divider, Avatar, Button } from "antd";
+import { Card, Empty, Flex, Typography, Divider, Avatar, Button, Spin } from "antd";
 import {
   WSType,
   type MessageGetDto,
+  type PageDto,
+  type PaginationDto,
   type ThreadShallowDto,
   type WSMessage,
 } from "../constants/types";
@@ -23,6 +25,10 @@ export const ThreadsPage = () => {
   const { id } = useParams<{ id: string }>();
   const user = useUser();
   const wsRef = useRef<WSManager | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [pagination, setPagination] = useState<PaginationDto | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     api.get<ThreadShallowDto>(`/threads/${id}`).then((res) => {
@@ -32,13 +38,35 @@ export const ThreadsPage = () => {
     const ws = new WSManager(
       `${wsBaseUrl}/threads/${id}`,
       {
-        [WSType.READY]: async (msg) => setMessages(msg.data.messages),
-        [WSType.PAGE]: async (msg) => setMessages(msg.data.messages),
-        [WSType.MESSAGE]: async (msg) =>
-          setMessages((prev) => [...prev, msg.data]),
+        [WSType.READY]: async (msg: WSMessage) => {
+          const page: PageDto = msg.data;
+          setMessages(page.messages as unknown as MessageGetDto[]);
+          setPagination(page.pagination);
+        },
+        [WSType.PAGE]: async (msg: WSMessage) => {
+          const page: PageDto = msg.data;
+          const container = messagesContainerRef.current;
+          const prevScrollHeight = container?.scrollHeight ?? 0;
+
+          setMessages((prev) => [...(page.messages as unknown as MessageGetDto[]), ...prev]);
+          setPagination(page.pagination);
+
+          requestAnimationFrame(() => {
+            if (container) {
+              container.scrollTop = container.scrollHeight - prevScrollHeight;
+            }
+          });
+        },
+        [WSType.MESSAGE]: async (msg: WSMessage) => {
+          setMessages((prev) => [...prev, msg.data]);
+          requestAnimationFrame(() => {
+            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+          });
+        },
       },
       {},
     );
+
     wsRef.current = ws;
 
     ws.connect().then(() => {
@@ -54,8 +82,14 @@ export const ThreadsPage = () => {
     };
   }, [id]);
 
-  const createMessage = async () => {
-    if (!messageContent.trim() || !wsRef.current) return;
+  useEffect(() => {
+    if (messages.length > 0 && pagination?.current_page === 1) {
+      bottomRef.current?.scrollIntoView({ behavior: "instant" });
+    }
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!wsRef.current) return;
     wsRef.current.send({
       Mtype: WSType.MESSAGE,
       data: { content: messageContent },
@@ -63,14 +97,74 @@ export const ThreadsPage = () => {
     setMessageContent("");
   };
 
+  const loadOlderMessages = async () => {
+    if (loadingMore || !pagination?.has_more || !wsRef.current) return;
+    setLoadingMore(true);
+
+    wsRef.current.send({
+      Mtype: WSType.PAGE,
+      data: { page: pagination.current_page + 1 },
+    });
+
+    setLoadingMore(false);
+  };
+
+  const handleScroll = () => {
+    if (messagesContainerRef.current?.scrollTop === 0) {
+      loadOlderMessages();
+    }
+  };
+
+  function formatDate(dateStr: string): string {
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day:          "2-digit",
+      hour:         "2-digit",
+      minute:       "2-digit",
+      second:       "2-digit",
+      hour12:       false,
+      timeZoneName: "short",
+    }).format(new Date(dateStr));
+  }
+
   if (!thread) return null;
 
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 1000, margin: "0 auto" }}>
-      <Title level={2} style={{ marginBottom: 4 }}>
+    <div style={{ maxWidth: 1040, margin: "0 auto", paddingLeft: 20 }}>
+      <Title 
+        level={1} 
+        style={{ 
+          marginBottom: 12
+        }}
+      >
         {thread.name}
       </Title>
-      <Flex vertical gap={12}>
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        style={{
+          height: "65vh",
+          width: "100%",
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          paddingRight: 20,
+        }}
+      >
+        {loadingMore && (
+          <div style={{textAlign: "center", padding: 8}}>
+            <Spin size="small"/>
+          </div>
+        )}
+
+        {!pagination?.has_more && messages.length > 0 && (
+          <div style={{ textAlign: "center", padding: 5 }}>
+            <Text type="secondary">Beginning of thread</Text>
+          </div>
+        )}
+
         {messages.length === 0 ? (
           <>
             <Card style={{ borderRadius: 10 }}>
@@ -81,13 +175,17 @@ export const ThreadsPage = () => {
           messages.map((msg) => (
             <Card
               key={msg.id}
-              style={{ borderRadius: 10 }}
+              style={{ borderRadius: 10}}
+              styles={{ 
+                header: { borderBottom: "none" }, 
+                body:{ whiteSpace: "pre-line"}
+              }}
               title={
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    width: "20%",
+                    width: "100%",
                     gap: 12,
                     marginTop: 15,
                   }}
@@ -111,9 +209,21 @@ export const ThreadsPage = () => {
                       }}
                     />
                   </Avatar>
-                  <Title level={4} style={{ margin: 0 }}>
-                    {msg.author.username} - {msg.createdat}
-                  </Title>
+                    <Text 
+                      strong
+                      style={{
+                        fontSize: "120%",
+                        margin: 0
+                      }}
+                    
+                    >
+                    {msg.author.username}
+                    </Text>
+                    <Text
+                      style={{
+                        marginLeft: "auto"
+                      }}
+                    >{formatDate(msg.createdat)}</Text>
                 </div>
               }
             >
@@ -121,6 +231,9 @@ export const ThreadsPage = () => {
             </Card>
           ))
         )}
+        <div ref={bottomRef} />
+      </div>
+      <div style={{ paddingRight: 20}}>
         <Divider />
         <Card
           styles={{ header: { borderBottom: "none" } }}
@@ -166,6 +279,13 @@ export const ThreadsPage = () => {
             rows={4}
             value={messageContent}
             onChange={(e) => setMessageContent(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+                e.currentTarget.blur();
+              }
+            }}
           />
           <div
             style={{
@@ -174,12 +294,18 @@ export const ThreadsPage = () => {
               marginTop: 6,
             }}
           >
-            <Button type="primary" onClick={createMessage}>
+            <Button 
+              type="primary" 
+              onClick={(e) => {
+                sendMessage();
+                e.currentTarget.blur();
+              }}
+              >
               Post
             </Button>
           </div>
         </Card>
-      </Flex>
+      </div>
     </div>
   );
 };
