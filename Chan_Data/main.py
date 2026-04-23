@@ -54,7 +54,7 @@ app.include_router(ThreadController.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://two048chan.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

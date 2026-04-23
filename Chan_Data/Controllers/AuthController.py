@@ -108,8 +108,8 @@ def user_login(fastres: FastRes, logindto: LoginDto, db: Session = Depends(get_d
         value=token,
         httponly=True,
         max_age=COOKIE_MAX_AGE,
-        samesite="lax",
-        secure=False, # chnange to true for HTTPS
+        samesite="none",
+        secure=True, # chnange to true for HTTPS
     )
     response.data = True
     return response
