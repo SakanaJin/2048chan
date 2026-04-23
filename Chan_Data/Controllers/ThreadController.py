@@ -9,7 +9,7 @@ from Chan_Data.Utils.Time import round_nearest_hour
 from Chan_Data.Utils.Role import Role
 from Chan_Data.Entities.Threads import Thread
 from Chan_Data.Entities.Topics import Topic
-from Chan_Data.Controllers.AuthController import get_current_user
+from Chan_Data.Controllers.AuthController import get_current_user, require_not_guest
 from Chan_Data.Entities.dtos import ThreadCreateDto
 
 router = APIRouter(prefix="/api/threads", tags=["Threads"])
@@ -53,7 +53,7 @@ def get_by_topic(id: int, db: Session = Depends(get_db)):
     return response
 
 @router.post("/{id}/subscribe")
-def subscribe(id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
+def subscribe(id: int, db: Session = Depends(get_db), user = Depends(require_not_guest)):
     response = Response()
     thread = db.get(Thread, id)
     if not thread:
@@ -68,7 +68,7 @@ def subscribe(id: int, db: Session = Depends(get_db), user = Depends(get_current
     return response
 
 @router.post("/{id}/unsubscribe")
-def unsubscribe(id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
+def unsubscribe(id: int, db: Session = Depends(get_db), user = Depends(require_not_guest)):
     response = Response()
     thread = db.get(Thread, id)
     if not thread:
@@ -83,7 +83,7 @@ def unsubscribe(id: int, db: Session = Depends(get_db), user = Depends(get_curre
     return response
 
 @router.post("/topic/{id}")
-def create(threaddto: ThreadCreateDto, id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
+def create(threaddto: ThreadCreateDto, id: int, db: Session = Depends(get_db), user = Depends(require_not_guest)):
     response = Response()
     topic = db.get(Topic, id)
     if not topic:

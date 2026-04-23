@@ -1,4 +1,4 @@
-import { Card, Empty, Flex, Typography, Divider, Avatar, Button, Spin } from "antd";
+import { Card, Empty, Typography, Divider, Avatar, Button, Spin } from "antd";
 import {
   WSType,
   type MessageGetDto,
@@ -49,7 +49,10 @@ export const ThreadsPage = () => {
           const container = messagesContainerRef.current;
           const prevScrollHeight = container?.scrollHeight ?? 0;
 
-          setMessages((prev) => [...(page.messages as unknown as MessageGetDto[]), ...prev]);
+          setMessages((prev) => [
+            ...(page.messages as unknown as MessageGetDto[]),
+            ...prev,
+          ]);
           setPagination(page.pagination);
 
           requestAnimationFrame(() => {
@@ -117,7 +120,7 @@ export const ThreadsPage = () => {
 
     wsRef.current.send({
       Mtype: WSType.PAGE,
-      data: { page: pagination.current_page + 1 },
+      data: pagination.current_page + 1,
     });
 
     setLoadingMore(false);
@@ -133,11 +136,11 @@ export const ThreadsPage = () => {
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "2-digit",
-      day:          "2-digit",
-      hour:         "2-digit",
-      minute:       "2-digit",
-      second:       "2-digit",
-      hour12:       false,
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
       timeZoneName: "short",
     }).format(new Date(dateStr));
   }
@@ -146,10 +149,10 @@ export const ThreadsPage = () => {
 
   return (
     <div style={{ maxWidth: 1040, margin: "0 auto", paddingLeft: 20 }}>
-      <Title 
-        level={1} 
-        style={{ 
-          marginBottom: 12
+      <Title
+        level={1}
+        style={{
+          marginBottom: 12,
         }}
       >
         {thread.name}
@@ -168,8 +171,8 @@ export const ThreadsPage = () => {
         }}
       >
         {loadingMore && (
-          <div style={{textAlign: "center", padding: 8}}>
-            <Spin size="small"/>
+          <div style={{ textAlign: "center", padding: 8 }}>
+            <Spin size="small" />
           </div>
         )}
 
@@ -189,10 +192,10 @@ export const ThreadsPage = () => {
           messages.map((msg) => (
             <Card
               key={msg.id}
-              style={{ borderRadius: 10}}
-              styles={{ 
-                header: { borderBottom: "none" }, 
-                body:{ whiteSpace: "pre-line"}
+              style={{ borderRadius: 10 }}
+              styles={{
+                header: { borderBottom: "none" },
+                body: { whiteSpace: "pre-line" },
               }}
               title={
                 <div
@@ -223,21 +226,22 @@ export const ThreadsPage = () => {
                       }}
                     />
                   </Avatar>
-                    <Text 
-                      strong
-                      style={{
-                        fontSize: "120%",
-                        margin: 0
-                      }}
-                    
-                    >
+                  <Text
+                    strong
+                    style={{
+                      fontSize: "120%",
+                      margin: 0,
+                    }}
+                  >
                     {msg.author.username}
-                    </Text>
-                    <Text
-                      style={{
-                        marginLeft: "auto"
-                      }}
-                    >{formatDate(msg.createdat)}</Text>
+                  </Text>
+                  <Text
+                    style={{
+                      marginLeft: "auto",
+                    }}
+                  >
+                    {formatDate(msg.createdat)}
+                  </Text>
                 </div>
               }
             >
@@ -247,7 +251,7 @@ export const ThreadsPage = () => {
         )}
         <div ref={bottomRef} />
       </div>
-      <div style={{ paddingRight: 20}}>
+      <div style={{ paddingRight: 20 }}>
         <Divider />
         <Card
           styles={{ header: { borderBottom: "none" } }}
@@ -294,7 +298,7 @@ export const ThreadsPage = () => {
             value={messageContent}
             onChange={(e) => setMessageContent(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
               }
@@ -307,13 +311,13 @@ export const ThreadsPage = () => {
               marginTop: 6,
             }}
           >
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={(e) => {
                 sendMessage();
                 e.currentTarget.blur();
               }}
-              >
+            >
               Post
             </Button>
           </div>
