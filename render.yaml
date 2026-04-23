@@ -6,7 +6,6 @@ services:
     rootDir: 2048chan
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn Chan_Data.main:app --host 0.0.0.0 --port $PORT
-    plan: free
     envVars:
       - key: DBSTRING
         fromDatabase:
@@ -21,7 +20,6 @@ services:
     rootDir: Chan-Web
     buildCommand: bun install && bun run build
     staticPublishPath: ./dist
-    plan: free
     envVars:
       - key: VITE_API_BASE_URL
         value: https://chan-data.onrender.com/api
