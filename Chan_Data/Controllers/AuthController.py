@@ -73,10 +73,21 @@ def get_current_user_endpoint(user: User = Depends(get_current_user)):
     response.data = user.toGetDto()
     return response
 
+def delete_session_cookie(response: Response):
+    cookie_value = (
+        f"{COOKIE_NAME}=; "
+        f"Max-Age=0; "
+        f"Path=/; "
+        f"HttpOnly; "
+        f"Secure; "
+        f"SameSite=None; "
+    )
+    response.headers.append("Set-Cookie", cookie_value)
+
 @router.post("/logout")
 def user_logout(fastres: FastRes, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     response = Response()
-    fastres.delete_cookie(COOKIE_NAME)
+    delete_session_cookie(fastres)
     if user.role == Role.GUEST:
         db.execute(
             delete(User)
