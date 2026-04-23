@@ -25,12 +25,9 @@ def get_page(db: Session, threadid: int, page: int = 1) -> PageDto:
         .offset(offset)
         .limit(PAGE_SIZE)
     ).all()
-    total_messages = db.execute(
-        select(func.count(Thread.id))
-        .select_from(
-            select(Thread)
-            .where(Thread.id == threadid)
-        )
+    total_messages = db.scalar(
+        select(func.count(Message.id))
+        .where(Message.threadid == threadid)
     )
     total_pages = -(-total_messages // PAGE_SIZE)
     pagination = PaginationDto(
@@ -41,7 +38,7 @@ def get_page(db: Session, threadid: int, page: int = 1) -> PageDto:
         has_more=page < total_pages
     )
     return PageDto(
-        messages=reversed(message.toShallowDto() for message in messages),
+        messages=list(reversed([message.toShallowDto() for message in messages])),
         pagination=pagination
     )
 
@@ -78,7 +75,7 @@ async def onready(message: WSMessage, threadid: int, websocket: WebSocket, **kwa
         await websocket.send_json(newMessage.model_dump(mode="json"))
 
 @WSMHandler.register(WSMTypes.MESSAGE)
-async def onmessage(message: WSMessage, threadid: int, userid: int):
+async def onmessage(message: WSMessage, threadid: int, userid: int, **kwargs):
     if not message.data:
         return
     try:
@@ -90,12 +87,12 @@ async def onmessage(message: WSMessage, threadid: int, userid: int):
             content=messagedata.content,
             authorid=userid,
             threadid=threadid,
-            created_at=datetime.now()
+            createdat=datetime.now()
         )
         db.add(message)
         db.commit()
         db.refresh(message)
-        newMessage = WSMessage(Mtype=message.type, data=message.toShallowDto())
+        newMessage = WSMessage(Mtype=WSMTypes.MESSAGE, data=message.toShallowDto())
         await WSManager.broadcast(threadid=threadid, message=newMessage)
 
 @WSMHandler.register(WSMTypes.PAGE)
@@ -109,5 +106,5 @@ async def onpage(message: WSMessage, threadid: int, websocket: WebSocket, **kwar
         await websocket.send_json(newMessage.model_dump(mode="json"))
 
 @WSMHandler.register("not-found")
-async def notfound():
+async def notfound(*args, **kwargs):
     pass

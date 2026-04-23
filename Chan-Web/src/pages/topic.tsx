@@ -17,7 +17,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../config/axios";
 import { useAuth, useUser } from "../authentication/use-auth";
-import type { TopicGetDto, ThreadShallowDto } from "../constants/types";
+import {
+  type TopicGetDto,
+  type ThreadShallowDto,
+  UserRole,
+} from "../constants/types";
 import { notificationEmitter } from "../context/notification-emitter";
 
 const { Title, Text } = Typography;
@@ -171,7 +175,7 @@ export const TopicPage = () => {
                         size="small"
                         type={subbed ? "default" : "primary"}
                         danger={subbed}
-                        disabled={owned}
+                        disabled={owned || user.role == UserRole.GUEST}
                         loading={subscribing === thread.id}
                         onClick={() =>
                           subbed
@@ -205,6 +209,7 @@ export const TopicPage = () => {
           size="small"
           type="primary"
           icon={<PlusOutlined />}
+          disabled={user.role == UserRole.GUEST}
           loading={creating}
           onClick={handleCreate}
         >

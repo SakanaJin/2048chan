@@ -23,7 +23,6 @@ class WSMessage(BaseModel):
     Mtype: WSMTypes
     data: Optional[object] = None
 
-    
 class MessageHandler():
     """Do not use this class use WSMHandler"""
     def __init__(self):
@@ -41,6 +40,9 @@ class ConnectionManager:
         self.threads: Dict[int, Dict[int, WebSocket]] = {}
 
     async def connect(self, threadid: int, userid: int, websocket: WebSocket):
+        print(f"[DEBUG] self.threads = {self.threads}")
+        print(f"[DEBUG] threadid={threadid}, userid={userid}")
+        print(f"[DEBUG] threadid in self.threads: {threadid in self.threads}")
         await websocket.accept()
         with db_session() as db:
             thread = db.get(Thread, threadid)
@@ -76,7 +78,9 @@ class ConnectionManager:
                 await connection.send_json(message.model_dump(mode="json"))
 
     def user_in_thread(self, userid: int, threadid: int) -> bool:
-        return threadid in self.threads and userid in self.threads[threadid]
+        if threadid in self.threads and userid in self.threads[threadid]:
+            return True
+        return False
 
 WSManager = ConnectionManager()
 WSMHandler = MessageHandler()

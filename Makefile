@@ -3,13 +3,13 @@ install:
 	cd Chan-Web && bun install
 
 runb:
-	./.venv/bin/uvicorn Chan_Data.main:app --reload
+	./.venv/bin/uvicorn Chan_Data.main:app 
 
 runf:
 	cd Chan-Web && bun run dev
 
 run:
-	./.venv/bin/uvicorn Chan_Data.main:app --reload & cd Chan-Web && bun run dev
+	./.venv/bin/uvicorn Chan_Data.main:app & cd Chan-Web && bun run dev
 
 resetdb:
 	sudo -u postgres psql -c "DROP DATABASE IF EXISTS chan;"
