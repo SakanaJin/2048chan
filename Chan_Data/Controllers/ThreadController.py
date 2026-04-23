@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, exists
+from sqlalchemy import select, exists, desc
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
@@ -9,6 +9,7 @@ from Chan_Data.Utils.Time import round_nearest_hour
 from Chan_Data.Utils.Role import Role
 from Chan_Data.Entities.Threads import Thread
 from Chan_Data.Entities.Topics import Topic
+from Chan_Data.Entities.Messages import Message
 from Chan_Data.Controllers.AuthController import get_current_user, require_not_guest
 from Chan_Data.Entities.dtos import ThreadCreateDto
 
@@ -26,16 +27,22 @@ def get_all(db: Session = Depends(get_db)):
     response.data = [thread.toGetDto() for thread in threads]
     return response
 
-@router.get("/{id}")
-def get_by_id(id: int, db: Session = Depends(get_db)):
+@router.get("/{id}/messages")
+def get_messages(id: int, page: int = 1, page_size: int = 50, db: Session = Depends(get_db)):
     response = Response()
     thread = db.get(Thread, id)
     if not thread:
         response.add_error("id", "thread not found")
         raise HttpException(status_code=404, response=response)
-    thread.views += 1
-    db.commit()
-    response.data = thread.toGetDto()
+    offset = (page - 1) * page_size
+    messages = db.scalars(
+        select(Message)
+        .where(Message.threadid == id)
+        .order_by(desc(Message.id))
+        .offset(offset)
+        .limit(page_size)
+    ).all()
+    response.data = [message.toShallowDto() for message in messages]
     return response
 
 @router.get("topic/{id}")
@@ -50,6 +57,18 @@ def get_by_topic(id: int, db: Session = Depends(get_db)):
         .where(Thread.topicid == id)
     ).all()
     response.data = [thread.toGetDto() for thread in threads]
+    return response
+
+@router.get("/{id}")
+def get_by_id(id: int, db: Session = Depends(get_db)):
+    response = Response()
+    thread = db.get(Thread, id)
+    if not thread:
+        response.add_error("id", "thread not found")
+        raise HttpException(status_code=404, response=response)
+    thread.views += 1
+    db.commit()
+    response.data = thread.toGetDto()
     return response
 
 @router.post("/{id}/subscribe")
