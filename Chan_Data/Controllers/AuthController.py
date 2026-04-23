@@ -76,9 +76,10 @@ def get_current_user_endpoint(user: User = Depends(get_current_user)):
 @router.post("/logout")
 def user_logout(fastres: FastRes, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     response = Response()
+    token = create_session_token(0)
     fastres.set_cookie(
         key=COOKIE_NAME,
-        value="",
+        value=token,
         httponly=True,
         max_age=0,
         samesite="none",
