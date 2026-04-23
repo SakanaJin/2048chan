@@ -145,8 +145,8 @@ def create_guest(fastres: FastRes, db: Session = Depends(get_db)):
         value=token,
         httponly=True,
         max_age=COOKIE_MAX_AGE,
-        samesite="lax",
-        secure=False,
+        samesite="none",
+        secure=True,
     )
     response.data = True
     return response
